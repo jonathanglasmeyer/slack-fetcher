@@ -79,6 +79,24 @@ class SlackFetcher:
         data = response.json()
         return data.get("channel", {}) if data.get("ok") else {}
 
+    def fetch_thread_replies(self, channel, timestamp):
+        """Fetch thread replies if message is part of a thread"""
+        headers = {"Authorization": f"Bearer {self.token}"}
+        params = {
+            "channel": channel,
+            "ts": timestamp
+        }
+
+        response = requests.get("https://slack.com/api/conversations.replies", headers=headers, params=params)
+        data = response.json()
+
+        if not data.get("ok"):
+            return []
+
+        messages = data.get("messages", [])
+        # Remove the parent message (first one) to get only replies
+        return messages[1:] if len(messages) > 1 else []
+
     def fetch_from_url(self, url):
         """Main method - returns structured data"""
         try:
@@ -99,10 +117,36 @@ class SlackFetcher:
                 "channel": channel_info.get("name", "Unknown Channel"),
                 "text": message.get("text", ""),
                 "url": url,
-                "timestamp": timestamp
+                "timestamp": timestamp,
+                "is_thread": False,
+                "thread_replies": []
             }
 
-            # Add attachments if present
+            # Check if this message has thread replies
+            thread_replies = self.fetch_thread_replies(url_info["channel"], url_info["timestamp"])
+            if thread_replies:
+                result["is_thread"] = True
+                result["thread_replies"] = []
+
+                for reply in thread_replies:
+                    reply_user_info = self.fetch_user_info(reply.get("user", ""))
+                    reply_timestamp = float(reply.get("ts", 0))
+                    reply_date = datetime.fromtimestamp(reply_timestamp)
+
+                    reply_data = {
+                        "author": reply_user_info.get("real_name", reply_user_info.get("name", "Unknown User")),
+                        "text": reply.get("text", ""),
+                        "datetime": reply_date.strftime("%Y-%m-%d %H:%M:%S"),
+                        "timestamp": reply_timestamp
+                    }
+
+                    # Add attachments if present in reply
+                    if reply.get("attachments"):
+                        reply_data["attachments"] = reply["attachments"]
+
+                    result["thread_replies"].append(reply_data)
+
+            # Add attachments if present in main message
             if message.get("attachments"):
                 result["attachments"] = message["attachments"]
 
