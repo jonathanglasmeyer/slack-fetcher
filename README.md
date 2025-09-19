@@ -11,47 +11,46 @@ Simple Python tool to fetch Slack messages via URL for knowledge management work
 
 ## Quick Start
 
-### 1. Create Slack App
+### Option A: Use Existing Slack App (Easiest)
 
-1. Go to https://api.slack.com/apps
-2. Create new app → "From scratch"
-3. Add OAuth scopes:
+If someone already created a Slack app for your workspace:
+
+1. **Get access to the existing Slack app** (ask the app owner to add you as collaborator)
+2. **Install dependencies**: `pip install requests`
+3. **Get your OAuth token**:
+   - Go to the Slack app in your browser
+   - Click "Install to [Workspace]" or "Reinstall to [Workspace]"
+   - Copy the **User OAuth Token** that appears
+4. **Create token file**:
+   ```bash
+   # Create slack_token.json
+   {
+     "authed_user": {
+       "access_token": "xoxp-YOUR-TOKEN-HERE"
+     }
+   }
+   ```
+5. **Test it**: `python slack_fetch.py "https://yourworkspace.slack.com/archives/CHANNEL/pTIMESTAMP"`
+
+### Option B: Create Your Own Slack App (Advanced)
+
+<details>
+<summary>Click to expand full setup instructions</summary>
+
+1. Go to https://api.slack.com/apps → "Create New App" → "From scratch"
+2. Add OAuth scopes:
    - `channels:read`, `channels:history`
    - `groups:read`, `groups:history`
-   - `im:history`, `mpim:history`
-   - `users:read`
+   - `im:history`, `mpim:history`, `users:read`
+3. **Easy Install Method**:
+   - Use the "Install to Workspace" button in Slack Console
+   - Copy the User OAuth Token that appears
+   - Create `slack_token.json` with token (see format above)
+4. **Advanced OAuth Method** (only if you need programmatic setup):
+   - Configure redirect URLs and use `slack_oauth_setup.py`
+   - Requires ngrok setup for local development
 
-### 2. Setup Environment
-
-```bash
-# Install dependencies
-pip install requests
-# or use uv:
-uv sync
-
-# Configure credentials
-cp .env.example .env
-# Edit .env with your Slack app credentials
-```
-
-### 3. Get OAuth Token
-
-```bash
-# Setup ngrok for OAuth callback
-ngrok http 8765
-
-# Update .env with ngrok URL
-# Run OAuth setup
-python slack_oauth_setup.py
-
-# Follow OAuth flow in browser
-```
-
-### 4. Fetch Messages
-
-```bash
-python slack_fetch.py "https://yourworkspace.slack.com/archives/CHANNEL/pTIMESTAMP"
-```
+</details>
 
 ## Output Format
 
