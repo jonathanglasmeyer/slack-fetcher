@@ -1,0 +1,15 @@
+[project]
+name = "slack-fetcher"
+version = "1.0.0"
+description = "Simple Slack message fetcher for knowledge management workflows"
+dependencies = [
+    "requests",
+]
+requires-python = ">=3.8"
+authors = [
+    {name = "Jonathan Glasmeyer"}
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
